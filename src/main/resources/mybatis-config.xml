@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <properties resource="jdbc.properties"/>
+
+    <!-- 配置别名 -->
+    <typeAliases>
+        <!--<typeAlias type="com.qf.ghy.pojo.Student" alias="stu"/>-->
+        <!-- 批量注册别名：默认的别名就是类名，别名不区分大小写 -->
+        <package name="pojo"/>
+    </typeAliases>
+
+    <!-- 连接数据库信息 -->
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <!-- 加载mapper映射文件 -->
+    <mappers>
+        <package name="dao"/>
+
+    </mappers>
+</configuration>

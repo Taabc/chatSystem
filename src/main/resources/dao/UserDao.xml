@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "
+http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.UserDao">
+
+    <!--    <resultMap id="BaseResultMap" type="pojo.Employee">-->
+    <!--        <id column="emp_id" property="empId"/>-->
+    <!--        <result column="emp_name" property="empName"/>-->
+    <!--        <result column="emp_gender" property="empGender"/>-->
+    <!--        <result column="emp_email" property="empEmail"/>-->
+    <!--        <result column="emp_phone" property="empPhone"/>-->
+    <!--        <result column="emp_birthday" property="empBirthday"/>-->
+    <!--        <result column="hire_date" property="hireDate"/>-->
+    <!--        <result column="create_time" property="createTime"/>-->
+    <!--        <result column="update_time" property="updateTime"/>-->
+    <!--    </resultMap>-->
+
+    <!-- List<Employee> findAll(); -->
+<!--    <resultMap id="BaseResultMap" type="pojo.User">-->
+<!--        <id column="id" property="id"/>-->
+<!--        <result column="name" property="name"/>-->
+<!--        <result column="price" property="price"/>-->
+<!--        <result column="repertory" property="repertory"/>-->
+<!--        <result column="g_delete" property="g_delete"/>-->
+<!--    </resultMap>-->
+
+
+
+
+<!--    <insert id="addRecord" parameterType="pojo.G_Record" useGeneratedKeys="true" keyProperty="flag">-->
+<!--        INSERT INTO s_good_record-->
+<!--        (`flag`,`uid`,`gid`,`time`,`num`)-->
+<!--        VALUES-->
+<!--        (#{flag}, #{uid}, #{gid}, #{time}, #{num})-->
+<!--    </insert>-->
+
+    <select id="findAllUser"   resultType="pojo.User" flushCache="true">
+        SELECT
+        *
+        FROM
+        user WHERE del != 1
+    </select>
+    <!--    &lt;!&ndash; 增删改操作是mybatis是没有resultType属性的，但是可以根据方法的返回值进行推断得到 &ndash;&gt;-->
+    <!--    <delete id="deleteById" parameterType="Integer">-->
+    <!--        DELETE FROM tb_employee WHERE emp_id = #{id}-->
+    <!--    </delete>-->
+
+<!--  通过账号获取好友信息列表  -->
+    <select id="getAllFriendByAccount" resultType="pojo.Friend" flushCache="true">
+        SELECT
+        faccount,name,sort,lstatus,lip,lport
+        FROM
+        (friendlist left join login on friendlist.faccount = login.account  ) LEFT JOIN `user`  on friendlist.faccount = `user`.account  WHERE uaccount = #{account}
+
+    </select>
+    <!--  通过账号获取好友账号列表  -->
+    <select id="getFriendAccountByAccount" resultType="Integer" flushCache="true">
+        SELECT
+        faccount
+        FROM
+        friendlist WHERE uaccount = #{account}
+    </select>
+    <!-- 通过账号删除好友 -->
+    <delete id="deleteFriend" flushCache="true">
+        Delete From friendlist
+        WHERE uaccount = #{userAccount} and faccount = #{friendAccount}
+    </delete>
+
+<!-- 通过账号获取自定易的联系人分类列表 -->
+    <select id="getSubGroupByAc" resultType="pojo.SubGroup" flushCache="true">
+        SELECT
+        sid,sname
+        FROM
+        subgroup  WHERE qqaccount = #{account}
+
+    </select>
+
+<!--  通过账号获取加入的群聊  -->
+    <select id="getGroupByAc" resultType="pojo.Group" flushCache="true">
+        SELECT
+        ugnum,gnum,gname
+        FROM
+        user_group Left join grouptable on user_group.gnum = grouptable.gid WHERE qqaccount = #{account}
+
+    </select>
+
+<!--  登录时，通过账号名获取各种信息  -->
+    <select id="login" resultType="pojo.User" flushCache="true">
+        SELECT
+        *
+        FROM
+        `user` a LEFT JOIN login b  on a.account = b.account WHERE a.account = #{account} AND del = 0
+
+    </select>
+    <!--  通过编号更新IP和Port  -->
+    <update id="updateIpPort" >
+        UPDATE
+        login
+        SET
+        lstatus = 1,
+        lport = #{lport},
+        lip = #{lip}
+        WHERE account = #{account}
+    </update>
+    <!--  通过编号更新其登录状态  -->
+    <update id="updateLoginStatus" parameterType="Integer">
+        UPDATE
+        login
+        SET
+        lstatus = 0
+        WHERE account = #{account}
+    </update>
+    <!--  通过编号获取其IP和Port -->
+    <select id="getIpPortByAccount" parameterType="Integer" resultType="pojo.User" flushCache="true">
+        SELECT
+        lip,
+        lport
+        FROM
+        login
+        WHERE account = #{account}
+    </select>
+    <!--  通过群编号获取群文件列表  -->
+    <select id="getGroupFileList" parameterType="Integer" resultType="pojo.UserFile" flushCache="true">
+        SELECT
+        filename,
+        load_road,
+        gnum
+        FROM
+        file_road
+        WHERE gnum = #{gnum}
+    </select>
+    <!--  插入群文件消息 -->
+    <insert id="insertGroupFileInfo" >
+        INSERT INTO file_road
+        (filename,load_road,gnum)
+        VALUES
+        (#{filename},#{load_road},#{gnum})
+    </insert>
+    <!--  通过群编号获取群成员  -->
+    <select id="getGroupNumber" parameterType="Integer" resultType="pojo.User" flushCache="true">
+        SELECT
+        name,
+        account,
+        ugnum
+        FROM
+        user t1,
+        user_group t2
+        where t2.gnum = #{gnum} and t1.account = t2.qqaccount
+    </select>
+    <!--  插入新的好友关系 -->
+    <insert id="insertFriendRelation" parameterType="Integer">
+        INSERT INTO friendlist
+        (uaccount,faccount,sort)
+        VALUES
+        (#{userAccount},#{friendAccount},#{sort})
+    </insert>
+    <!-- 创建新群聊 -->
+    <insert id="addGroup" parameterType="pojo.Group"  keyProperty="gnum" useGeneratedKeys="true" flushCache="true">
+<!--        <selectKey resultType="Integer" keyProperty="gnum" order="AFTER" >-->
+<!--            select last_insert_id();-->
+<!--        </selectKey>-->
+        INSERT INTO grouptable
+        (gname,gdate)
+        VALUES
+        (#{gname},#{gdate})
+    </insert>
+
+    <!-- 添加新的群成员-->
+    <insert id="addGroupNumber" flushCache="true">
+        INSERT INTO user_group
+        (ugnum,qqaccount,gnum)
+        VALUES
+        (#{ugnum},#{userAccount},#{gnum})
+    </insert>
+        <resultMap id="groupMap" type="pojo.Group">
+            <id column="gid" property="gnum"/>
+            <result column="gname" property="gname"/>
+        </resultMap>
+    <!--  通过群编号获得群信息  -->
+    <select id="getGroupById" resultMap="groupMap" flushCache="true">
+        SELECT
+        gid,
+        gname
+        FROM
+        grouptable
+        WHERE gid = #{gid}
+    </select>
+
+
+</mapper>
